@@ -27,7 +27,7 @@ elif cat /proc/version | grep -Eqi "debian"; then
     release="debian"
 elif cat /proc/version | grep -Eqi "ubuntu"; then
     release="ubuntu"
-elif cat /proc/version | grep -Eqi "alpine"; then
+elif cat /etc/os-release | grep -Eqi "alpine"; then
     release="alpine"
 elif cat /proc/version | grep -Eqi "centos|red hat|redhat"; then
     release="centos"
