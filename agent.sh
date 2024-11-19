@@ -99,6 +99,44 @@ if [[ "${release}" == "alpine" ]]; then
         cat /etc/init.d/nezha-agent  
     else
         echo -e "${yellow}/etc/init.d/nezha-agent服务不存在,请尝试手动修改${plain}"
+        echo "请输入服务端地址,格式为 ip:port 或者 域名:port"
+        read server_address
+        echo "请输入是否启用tls加密,默认启用(Y/N)"
+        read tls_choose
+        if [ -z "$tls_choose" ] || [ "$tls_choose" = "Y" ]; then
+            tls_string="--tls"
+            echo "请输入加密密钥"
+            read secret_string
+        else
+            tls_string=""
+        fi
+        cat >/etc/init.d/nezha-agent<< EOF
+            #!/sbin/openrc-run
+            SERVER="${server_address}"
+            SECRET="${secret_string}"
+            TLS="${tls_string}" # 是否启用 tls 是 "--tls" 否留空
+            NZ_BASE_PATH="/opt/nezha"
+            NZ_AGENT_PATH="${NZ_BASE_PATH}/agent"
+            pidfile="/run/${RC_SVCNAME}.pid"
+            command="/opt/nezha/agent/nezha-agent"
+            command_args="-s ${SERVER}  -p ${SECRET} ${TLS}"
+            command_background=true
+            depend() {
+            	need net
+            }
+            checkconfig() {
+            	GITHUB_URL="github.com"
+
+                if [ ! -x "${NZ_AGENT_PATH}/nezha-agent" ]; then
+            		chmod +x ${NZ_AGENT_PATH}/nezha-agent
+            	fi
+            }
+            start_pre() {
+            	if [ "${RC_CMD}" != "restart" ]; then
+            		checkconfig || return $?
+            	fi
+            }
+            EOF
     fi
 else
     if [ -f /etc/systemd/system/nezha-agent.service ]; then
@@ -126,6 +164,7 @@ echo -e "${green}开始尝试降级Agent"
         fi
     else
        echo -e "${yellow}/opt/nezha/agent/nezha-agent不存在,准备下载v0.${VERSION}版${plain}"
+       mkdir -p /opt/nezha/agent/
         if [[ "${arch}" == "amd64" ]]; then
             wget https://github.com/nezhahq/agent/releases/download/v0.${VERSION}/nezha-agent_linux_amd64.zip && unzip nezha-agent_linux_amd64.zip && rm nezha-agent_linux_amd64.zip && mv nezha-agent /opt/nezha/agent/nezha-agent
         elif [[ "${arch}" == "arm64" ]]; then
