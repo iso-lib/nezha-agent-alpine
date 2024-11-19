@@ -110,7 +110,7 @@ if [[ "${release}" == "alpine" ]]; then
         else
             tls_string=""
         fi
-        cat >/etc/init.d/nezha-agent<< EOF
+        cat >/etc/init.d/nezha-agent <<-EOF
             #!/sbin/openrc-run
             SERVER="${server_address}"
             SECRET="${secret_string}"
@@ -136,7 +136,7 @@ if [[ "${release}" == "alpine" ]]; then
             		checkconfig || return $?
             	fi
             }
-            EOF
+       EOF
     fi
 else
     if [ -f /etc/systemd/system/nezha-agent.service ]; then
