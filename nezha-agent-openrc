@@ -1,0 +1,24 @@
+#!/sbin/openrc-run
+SERVER=""
+SECRET=""
+TLS="--tls"
+NZ_BASE_PATH="/opt/nezha"
+NZ_AGENT_PATH="${NZ_BASE_PATH}/agent"
+pidfile="/run/${RC_SVCNAME}.pid"
+command="/opt/nezha/agent/nezha-agent"
+command_args="-s ${SERVER}  -p ${SECRET} ${TLS}"
+command_background=true
+depend() {
+  need net
+}
+checkconfig() {
+  GITHUB_URL="github.com"
+  if [ ! -x "${NZ_AGENT_PATH}/nezha-agent" ]; then
+    chmod +x ${NZ_AGENT_PATH}/nezha-agent
+  fi
+}
+start_pre() {
+  if [ "${RC_CMD}" != "restart" ]; then
+    checkconfig || return $?
+  fi
+}
